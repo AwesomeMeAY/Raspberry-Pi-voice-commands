@@ -53,7 +53,7 @@ def exe(command):
         # if command.split()[1] in websites then it will search the website
         # instead of googling it.
         if website in websites:
-            webbrowser.open(duckurl + websites[website] + " " + command[command.index(command.split()[2]):])
+            webbrowser.open("{}{} {}".format(duckurl, websites[website], command[command.index(command.split()[2]):]))
             return True
         else:
             webbrowser.open(duckurl + command[command.index(command.split()[1]):])
@@ -100,9 +100,6 @@ def listening():
 current_files, current_dirs, current_subs = reload_files()
 r = sr.Recognizer()
 websites = {"youtube":"!you"}
-commands = ["open directory We need to deeper", "open directory Kirby's Epic Yarn", "open directory Classical music", "open directory sponge bob",
-            "open directory Super mario odyssey ", "open directory batman animated", "search youtube ethoslab", "play the chrwistman tree",
-            "search someting", "play spiderman", "reload", "refresh"]
 
 while True:
     listening()    
