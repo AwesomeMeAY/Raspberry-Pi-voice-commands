@@ -57,13 +57,15 @@ def exe(command):
             return True
         else:
             webbrowser.open(duckurl + command[command.index(command.split()[1]):])
-            return True
-    elif "open directory" in command:
+            return True       
+        
+    elif "play directory" in command:
         combined_dir =  dir_search(command[command.index(command.split()[2]):])
         for sub_dir, dirs, files in os.walk(os.getcwd()):
             if combined_dir in sub_dir:
-                subprocess.call(["xdg-open",sub_dir])
+                os.system("vlc {}".format(sub_dir))                
                 return True
+
     elif order == "play":
         #this will play movies
         file = file_search(command[command.index(command.split()[1]):])
