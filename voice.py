@@ -72,7 +72,9 @@ def exe(command):
     
     elif order == "add":
         # The second letter will be the webbsite third will be the bang
-        websites[command.split()[1]] = command.split()[2]
+        website = command.split()[1].replace("!", "")
+        bang = "!" + command.split()[2]
+        websites[website] = bang
         return True
     elif order == "refresh" or order == "reload":
         print("{}ing files...".format(order.capitalize()))
@@ -89,7 +91,7 @@ def listening():
     with sr.Microphone() as sauce:
         print("Listening...")
         audio = r.listen(sauce)
-    print("recognizing")
+    print("Recognizing...")
     command_worked = exe(r.recognize_google(audio))
     if not command_worked:
         print("Something went wrong!")
