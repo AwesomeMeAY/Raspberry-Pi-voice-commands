@@ -77,6 +77,7 @@ def exe(command):
         website = command.split()[1].replace("!", "")
         bang = "!" + command.split()[2]
         websites[website] = bang
+        print(websites)
         return True
     elif order == "refresh" or order == "reload":
         print("{}ing files...".format(order.capitalize()))
@@ -94,7 +95,11 @@ def listening():
         print("Listening...")
         audio = r.listen(sauce)
     print("Recognizing...")
-    command_worked = exe(r.recognize_google(audio))
+    try:
+        command_worked = exe(r.recognize_google(audio))
+    except sr.RequestError:
+        print("Something went wrong with the conection. Trying sphinx...")
+        command_worked = exe(r.recognize_sphinx(audio))
     if not command_worked:
         print("Something went wrong!")
         return False
@@ -104,7 +109,6 @@ def listening():
 current_files, current_dirs, current_subs = reload_files()
 r = sr.Recognizer()
 websites = {"youtube":"!you"}
-
 while True:
     listening()    
     
