@@ -2,6 +2,7 @@ import os
 import webbrowser
 import subprocess
 import speech_recognition as sr
+import json
 from time import sleep
 from difflib import get_close_matches
 
@@ -59,7 +60,7 @@ def exe(command):
             webbrowser.open(duckurl + command[command.index(command.split()[1]):])
             return True       
         
-    elif "play directory" in command:
+    elif "play directory" in command[:2]:
         combined_dir =  dir_search(command[command.index(command.split()[2]):])
         for sub_dir, dirs, files in os.walk(os.getcwd()):
             if combined_dir in sub_dir:
@@ -74,9 +75,12 @@ def exe(command):
     
     elif order == "add":
         # The second letter will be the webbsite third will be the bang
-        website = command.split()[1].replace("!", "")
-        bang = "!" + command.split()[2]
-        websites[website] = bang
+        website_bang = {command.split()[1]: "!" + command.split()[2]}
+        websites.update(website_bang)    
+
+        with open("websites.json", "w") as websites:
+            json.dump(websites, websites)   
+
         print(websites)
         return True
     elif order == "refresh" or order == "reload":
@@ -108,7 +112,9 @@ def listening():
 # Constants
 current_files, current_dirs, current_subs = reload_files()
 r = sr.Recognizer()
-websites = {"youtube":"!you"}
+with open("websites.json") as websites.json:
+    websites = json.load(websites.json)
+
 while True:
     listening()    
     
