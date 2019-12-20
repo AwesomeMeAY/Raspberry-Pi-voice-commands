@@ -3,118 +3,147 @@ import webbrowser
 import subprocess
 import speech_recognition as sr
 import json
+from itertools import chain
+# sleep used for checking code.
 from time import sleep
 from difflib import get_close_matches
 
-# defining functions that are used 
-def reload_files():
-    """ Order is: files, directories,then paths."""
-    found_files = []
-    found_dirs = []
-    found_paths = []
-    for paths, dirs, files in os.walk(os.getcwd()):
-        found_files += files
-        found_dirs += dirs
-        found_paths += paths
-    return found_files, found_dirs, found_paths
+# Constants
+with open("websites.json") as websites_json:
+    WEBSITES = json.load(websites_json)
+
+STANDARD_CUTOFF = 0.4
 
 def find_path(file):
     for path, dirs, files in os.walk(os.getcwd()):
-            for f in files:
-                if f == file:
-                    return os.path.join(path, file)
-            for d in dirs:
-                if d == file:
-                    return os.path.join(path, file)
+        if any(i == file for i in chain(dirs, files)):
+            return os.path.join(path, file)
+        else:
+            print("Could not find path!")
 
 def file_search(file):
-    return get_close_matches(file, current_files)[0]
+    return get_close_matches(file, current_files, cutoff=STANDARD_CUTOFF)[0]
 
 def dir_search(directory):
     try:
-        requested_dir = get_close_matches(directory, current_dirs)[0]
+        requested_dir = get_close_matches(directory, current_dirs, cutoff=STANDARD_CUTOFF)[0]
         dir_list = []
         # Iterating through the directory that was declared before.
         for dirs in os.listdir(find_path(requested_dir)):
             if os.path.isdir(find_path(dirs)):
-                dir_list.append("{}\{}".format(requested_dir, dirs))       
-        if len(get_close_matches(directory, dir_list)) == 0:
+                dir_list.append("{}/{}".format(requested_dir, dirs))       
+        if len(get_close_matches(directory, dir_list, cutoff=STANDARD_CUTOFF)) == 0:
             return find_path(requested_dir)
         else:
-            return get_close_matches(directory, dir_list)[0]                           
-    except:
-        print('Could not find directory "{}"!'.format(directory))
+            return get_close_matches(directory, dir_list, cutoff=STANDARD_CUTOFF)[0]
+    except IndexError:
+        print("Could not find directory {}!".format(directory)
+    
+# commands
+
+def search(command):
+    duckurl = "https://www.duckduckgo.com/?q="
+
+    website = command.split()[0]
+
+    # if command.split()[0] in websites.json then it will search the website
+    # instead of googling it.
+    if website in WEBSITES:
+        url = "{}{} {}".format(duckurl, WEBSITES[website], command[command.index(command.split()[1]):])
+        
+    else:
+        url = duckurl + command
+
+    webbrowser.open(url)
+    return True
+
+def play_directory(command):
+    combined_dir =  dir_search(command)
+    for sub_dir, dirs, files in os.walk(os.getcwd()):
+        if combined_dir in sub_dir:
+            os.system("vlc {}".format(sub_dir))                
+            return True
+
+def play(command):
+    #this will play movies
+    file = file_search(command[command.index(command.split()[1]):])
+    subprocess.call(["xdg-open",find_path(file)])
+    return True
+
+def run(command):
+    os.system(command[command.index(command.split()[1]):])
+    return True  
+
+def add(command):
+    # The second letter will be the webbsite third will be the bang
+    WEBSITES[command.split()[0]] = "!{}".format(command.split()[1])
+    with open("websites.json", "w") as websites_json:
+        json.dump(WEBSITES, websites_json)   
+
+    print(WEBSITES)
+    return True
+
+def refresh():
+    """ Order is: files, directories,then paths."""
+    print("Refreshing files...")
+    current_files = []
+    current_dirs = []
+    current_paths = []
+    for paths, dirs, files in os.walk(os.getcwd()):
+        current_files.extend(files)
+        current_dirs.extend(dirs)
+        current_paths.extend(paths)
+    print("Done!")
+    return current_files, current_dirs, current_paths
 
 def exe(command):
-    duckurl = "https://www.duckduckgo.com/?q="
+    commands = {"search":search, "playlist":play_directory, "play":play,
+                "add":add, "run":run, "refresh":refresh}   
     command = command.lower()
     order = command.split()[0]
-    if order == "search":
-        website = command.split()[1]
-        # if command.split()[1] in websites then it will search the website
-        # instead of googling it.
-        if website in websites:
-            webbrowser.open("{}{} {}".format(duckurl, websites[website], command[command.index(command.split()[2]):]))
-            return True
-        else:
-            webbrowser.open(duckurl + command[command.index(command.split()[1]):])
-            return True       
-        
-    elif "play directory" in command[:2]:
-        combined_dir =  dir_search(command[command.index(command.split()[2]):])
-        for sub_dir, dirs, files in os.walk(os.getcwd()):
-            if combined_dir in sub_dir:
-                os.system("vlc {}".format(sub_dir))                
-                return True
 
-    elif order == "play":
-        #this will play movies
-        file = file_search(command[command.index(command.split()[1]):])
-        subprocess.call(["xdg-open",find_path(file)])
-        return True
-    
-    elif order == "add":
-        # The second letter will be the webbsite third will be the bang
-        website_bang = {command.split()[1]: "!" + command.split()[2]}
-        websites.update(website_bang)    
-
-        with open("websites.json", "w") as websites:
-            json.dump(websites, websites)   
-
-        print(websites)
-        return True
-    elif order == "refresh" or order == "reload":
-        print("{}ing files...".format(order.capitalize()))
-        global current_files, current_dirs, current_subs
-        current_files, current_dirs, current_subs = reload_files()
-        print("Complete!")
-        return True
+    if order in commands:
+        # The dictionary returns the function name which is called in this line of code
+        # did not expect that to work.
+        try:
+            return commands[order](command[command.index(command.split()[1]):])
+        except IndexError:
+            return commands[order]()
     else:
         print('Could not recognize command "{}"!'.format(command))
         return False
 
 # speech recognition
-def listening():
-    with sr.Microphone() as sauce:
+def recognize_speech():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
         print("Listening...")
-        audio = r.listen(sauce)
+        try:
+            audio = recognizer.listen(source, timeout=5)
+        except sr.WaitTimeoutError:
+            print("You ran out of time!")
+            return False
+
     print("Recognizing...")
     try:
-        command_worked = exe(r.recognize_google(audio))
+        command_worked = exe(recognizer.recognize_google(audio))
     except sr.RequestError:
         print("Something went wrong with the conection. Trying sphinx...")
-        command_worked = exe(r.recognize_sphinx(audio))
+        command_worked = exe(recognizer.recognize_sphinx(audio))
+    
+    except sr.UnknownValueError:
+        print("Could not hear what you were saying!")
+        return False
+    # I know this is useless. 
     if not command_worked:
-        print("Something went wrong!")
+        print("Something went wrong with the exe function!")
         return False
     else:
         return True
-# Constants
-current_files, current_dirs, current_subs = reload_files()
-r = sr.Recognizer()
-with open("websites.json") as websites.json:
-    websites = json.load(websites.json)
 
-while True:
-    listening()    
-    
+
+current_files, current_dirs, current_subs = refresh()
+
+if __name__ == __main__:
+    while True:
+        recognize_speech()  
