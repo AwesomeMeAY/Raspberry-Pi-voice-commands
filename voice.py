@@ -1,11 +1,9 @@
 import os
 import webbrowser
 import subprocess
-import speech_recognition as sr
 import json
+import speech_recognition as sr
 from itertools import chain
-# sleep used for checking code.
-from time import sleep
 from difflib import get_close_matches
 
 # Constants
@@ -18,8 +16,9 @@ def find_path(file):
     for path, dirs, files in os.walk(os.getcwd()):
         if any(i == file for i in chain(dirs, files)):
             return os.path.join(path, file)
-        else:
-            print("Could not find path!")
+    
+    print("Could not find path!")
+    
 
 def file_search(file):
     return get_close_matches(file, current_files, cutoff=STANDARD_CUTOFF)[0]
@@ -27,7 +26,7 @@ def file_search(file):
 def dir_search(directory):
     try:
         requested_dir = get_close_matches(directory, current_dirs, cutoff=STANDARD_CUTOFF)[0]
-        dir_list = []
+        dir_list = [requested_dir]
         # Iterating through the directory that was declared before.
         for dirs in os.listdir(find_path(requested_dir)):
             if os.path.isdir(find_path(dirs)):
@@ -36,8 +35,11 @@ def dir_search(directory):
             return find_path(requested_dir)
         else:
             return get_close_matches(directory, dir_list, cutoff=STANDARD_CUTOFF)[0]
+    # Index Error because get_close_matches returns a list
+    # And if the list is emty there is no index 0 
     except IndexError:
-        print("Could not find directory {}!".format(directory)
+        print('Could not find directory "{}"!'.format(directory))
+        return ""
     
 # commands
 
@@ -65,17 +67,17 @@ def play_directory(command):
             return True
 
 def play(command):
-    #this will play movies
+    #this will play one file
     file = file_search(command[command.index(command.split()[1]):])
     subprocess.call(["xdg-open",find_path(file)])
     return True
 
 def run(command):
-    os.system(command[command.index(command.split()[1]):])
+    os.system(command)
     return True  
 
 def add(command):
-    # The second letter will be the webbsite third will be the bang
+    # The first letter will be the webbsite second will be the bang
     WEBSITES[command.split()[0]] = "!{}".format(command.split()[1])
     with open("websites.json", "w") as websites_json:
         json.dump(WEBSITES, websites_json)   
@@ -83,6 +85,9 @@ def add(command):
     print(WEBSITES)
     return True
 
+def lst(directory):
+    print(os.listdir(find_path(dir_search(directory))))
+        
 def refresh():
     """ Order is: files, directories,then paths."""
     print("Refreshing files...")
@@ -98,7 +103,7 @@ def refresh():
 
 def exe(command):
     commands = {"search":search, "playlist":play_directory, "play":play,
-                "add":add, "run":run, "refresh":refresh}   
+                "add":add, "run":run, "refresh":refresh, "list":lst}   
     command = command.lower()
     order = command.split()[0]
 
@@ -134,7 +139,7 @@ def recognize_speech():
     except sr.UnknownValueError:
         print("Could not hear what you were saying!")
         return False
-    # I know this is useless. 
+    
     if not command_worked:
         print("Something went wrong with the exe function!")
         return False
@@ -144,6 +149,6 @@ def recognize_speech():
 
 current_files, current_dirs, current_subs = refresh()
 
-if __name__ == __main__:
+if __name__ == "__main__":
     while True:
         recognize_speech()  
