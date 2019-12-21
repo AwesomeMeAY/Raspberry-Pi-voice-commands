@@ -2,6 +2,7 @@ import os
 import webbrowser
 import subprocess
 import json
+import http
 import speech_recognition as sr
 from itertools import chain
 from difflib import get_close_matches
@@ -73,8 +74,7 @@ def play(command):
     return True
 
 def run(command):
-    os.system(command)
-    return True  
+    subprocess.call(command, shell=True)
 
 def add(command):
     # The first letter will be the webbsite second will be the bang
@@ -87,6 +87,15 @@ def add(command):
 
 def lst(directory):
     print(os.listdir(find_path(dir_search(directory))))
+
+def _help_(commands):
+    keys = []
+    for key in commands:
+        keys.append(key)
+    print("Here are a list of commands...")
+    print(keys)
+        
+  
         
 def refresh():
     """ Order is: files, directories,then paths."""
@@ -103,7 +112,7 @@ def refresh():
 
 def exe(command):
     commands = {"search":search, "playlist":play_directory, "play":play,
-                "add":add, "run":run, "refresh":refresh, "list":lst}   
+                "add":add, "run":run, "refresh":refresh, "list":lst, "help":_help_}   
     command = command.lower()
     order = command.split()[0]
 
@@ -112,8 +121,13 @@ def exe(command):
         # did not expect that to work.
         try:
             return commands[order](command[command.index(command.split()[1]):])
+
         except IndexError:
-            return commands[order]()
+            try:
+                return commands[order]()
+            except TypeError:
+                return commands[order](commands)
+        
     else:
         print('Could not recognize command "{}"!'.format(command))
         return False
@@ -132,7 +146,7 @@ def recognize_speech():
     print("Recognizing...")
     try:
         command_worked = exe(recognizer.recognize_google(audio))
-    except sr.RequestError:
+    except(sr.RequestError, http.client.RemoteDisconnected):
         print("Something went wrong with the conection. Trying sphinx...")
         command_worked = exe(recognizer.recognize_sphinx(audio))
     
@@ -140,11 +154,7 @@ def recognize_speech():
         print("Could not hear what you were saying!")
         return False
     
-    if not command_worked:
-        print("Something went wrong with the exe function!")
-        return False
-    else:
-        return True
+    return True
 
 
 current_files, current_dirs, current_subs = refresh()
