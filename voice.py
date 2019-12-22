@@ -2,6 +2,7 @@ import os
 import webbrowser
 import subprocess
 import json
+# http used for error exception
 import http
 import speech_recognition as sr
 from itertools import chain
@@ -46,7 +47,6 @@ def dir_search(directory):
 
 def search(command):
     duckurl = "https://www.duckduckgo.com/?q="
-
     website = command.split()[0]
 
     # if command.split()[0] in websites.json then it will search the website
@@ -60,12 +60,16 @@ def search(command):
     webbrowser.open(url)
     return True
 
-def play_directory(command):
+search.help = '''searches duckduckgo: "search (what you want to search for)". if you want to search a specific website:
+"search (specific website)(what you want to search for)"'''  
+
+def play_directory(command):    
     combined_dir =  dir_search(command)
     for sub_dir, dirs, files in os.walk(os.getcwd()):
         if combined_dir in sub_dir:
             os.system("vlc {}".format(sub_dir))                
             return True
+play_directory.help = """Turns a directory into a vlc playlist: "playlist (directory)" """
 
 def play(command):
     #this will play one file
@@ -73,10 +77,14 @@ def play(command):
     subprocess.call(["xdg-open",find_path(file)])
     return True
 
+play.help = """Plays a file: "play (file)" """
+
 def run(command):
     subprocess.call(command, shell=True)
 
-def add(command):
+run.help = """Runs command on the teminal: "run (command)" """
+
+def add(command): 
     # The first letter will be the webbsite second will be the bang
     WEBSITES[command.split()[0]] = "!{}".format(command.split()[1])
     with open("websites.json", "w") as websites_json:
@@ -85,17 +93,26 @@ def add(command):
     print(WEBSITES)
     return True
 
+add.help = """Adds a searchable website to the json: "add (website name) (duckduckgo bang)" """
+
 def lst(directory):
     print(os.listdir(find_path(dir_search(directory))))
 
-def _help_(commands):
-    keys = []
-    for key in commands:
-        keys.append(key)
-    print("Here are a list of commands...")
-    print(keys)
-        
-  
+lst.help = """lists the contents of a directory:
+list (directory)"""
+
+def _help_(specific_command=None):
+    if not specific_command:
+        for k,v in exe.commands.items():
+            print(" ")
+            print("FUNCTION {}: {}".format(k.upper(), v.help))
+    else:
+        try:
+            print(exe.commands[specific_command].help)
+        except KeyError:
+            print('"{}" is not a command!'.format(specific_command))
+
+_help_.help = "Prints the help attribute of every command"        
         
 def refresh():
     """ Order is: files, directories,then paths."""
@@ -110,23 +127,22 @@ def refresh():
     print("Done!")
     return current_files, current_dirs, current_paths
 
+refresh.help = "Looks through the files and directories again"
+
 def exe(command):
-    commands = {"search":search, "playlist":play_directory, "play":play,
+    exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst, "help":_help_}   
     command = command.lower()
     order = command.split()[0]
 
-    if order in commands:
-        # The dictionary returns the function name which is called in this line of code
-        # did not expect that to work.
+    if order in exe.commands:
+        # The dictionary returns the function name which is then called in this line of code
         try:
-            return commands[order](command[command.index(command.split()[1]):])
+            return exe.commands[order](command[command.index(command.split()[1]):])
 
         except IndexError:
-            try:
-                return commands[order]()
-            except TypeError:
-                return commands[order](commands)
+            return exe.commands[order]()
+
         
     else:
         print('Could not recognize command "{}"!'.format(command))
