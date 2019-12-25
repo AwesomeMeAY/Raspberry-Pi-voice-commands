@@ -95,9 +95,11 @@ def add(command):
 
 add.help = """Adds a searchable website to the json: "add (website name) (duckduckgo bang)" """
 
-def lst(directory):
-    print(os.listdir(find_path(dir_search(directory))))
-
+def lst(directory=None):
+    if directory:
+        print(os.listdir(find_path(dir_search(directory))))
+    else:
+        print(os.listdir(os.getcwd()))
 lst.help = """lists the contents of a directory:
 list (directory)"""
 
@@ -129,12 +131,38 @@ def refresh():
 
 refresh.help = "Looks through the files and directories again"
 
+def note(command):
+    # THis is what a command will look like
+    # (Title) (Mode) (Junk to write down)
+    # (Micah is cool) (Write) (Micah is the coolest dude)
+    modes = {"overwrite":"w", "append":"a", "read":"r"}
+    title = ""
+    # iterating through title until the it reaches mode
+    for i in command.split():
+        if i not in modes:
+            title += i + " "
+        else:
+            break
+    title = title.strip()
+    # Seperating the title from everything else
+    command = command[command.index(title[-1])+2:]
+    mode = command.split()[0]
+    try:
+        with open(title, modes[mode]) as file:
+            if mode == "read":
+                print(file.read())
+            else:
+                file.write(command[command.index(command.split()[1]):])
+    except KeyError:
+        print("(NOTE) Could not find a mode in your command!")
+
+note.help = """Write/append/read a txt file: (title) (mode) [if mode not read (what you want to write down)]"""
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
-                "add":add, "run":run, "refresh":refresh, "list":lst, "help":_help_}   
+                "add":add, "run":run, "refresh":refresh, "list":lst,
+                    "help":_help_, "note":note}   
     command = command.lower()
     order = command.split()[0]
-
     if order in exe.commands:
         # The dictionary returns the function name which is then called in this line of code
         try:
