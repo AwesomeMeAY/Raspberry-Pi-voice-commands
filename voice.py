@@ -2,9 +2,13 @@ import os
 import webbrowser
 import subprocess
 import json
+import threading
+import datetime
 # http used for error exception
 import http
 import speech_recognition as sr
+from gtts import gTTS
+from io import BytesIO
 from itertools import chain
 from difflib import get_close_matches
 
@@ -134,7 +138,6 @@ refresh.help = "Looks through the files and directories again"
 def note(command):
     # THis is what a command will look like
     # (Title) (Mode) (Junk to write down)
-    # (Micah is cool) (Write) (Micah is the coolest dude)
     modes = {"overwrite":"w", "append":"a", "read":"r"}
     title = ""
     # iterating through title until the it reaches mode
@@ -157,10 +160,22 @@ def note(command):
         print("(NOTE) Could not find a mode in your command!")
 
 note.help = """Write/append/read a txt file: (title) (mode) [if mode not read (what you want to write down)]"""
+
+def timer(command):
+    if len(command.split())+1 == 2 and command.split()[1] == "forever":
+        os.system("python3 Timer.py {} {}".format(command.split()[0], True))
+    else:
+        os.system("python3 Timer.py {}".format(command))
+
+timer.help = """Create a permint or temporary timer:
+permamint: "timer (time in 24h time) forever"
+temporary: "timer (time in 24h time)" """
+
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst,
-                    "help":_help_, "note":note}   
+                    "help":_help_, "note":note, "timer":timer}   
+    
     command = command.lower()
     order = command.split()[0]
     if order in exe.commands:
@@ -179,6 +194,7 @@ def exe(command):
 # speech recognition
 def recognize_speech():
     recognizer = sr.Recognizer()
+
     with sr.Microphone() as source:
         print("Listening...")
         try:
@@ -186,10 +202,10 @@ def recognize_speech():
         except sr.WaitTimeoutError:
             print("You ran out of time!")
             return False
-
     print("Recognizing...")
     try:
         command_worked = exe(recognizer.recognize_google(audio))
+        return True
     except(sr.RequestError, http.client.RemoteDisconnected):
         print("Something went wrong with the conection. Trying sphinx...")
         command_worked = exe(recognizer.recognize_sphinx(audio))
@@ -198,11 +214,12 @@ def recognize_speech():
         print("Could not hear what you were saying!")
         return False
     
-    return True
+
 
 
 current_files, current_dirs, current_subs = refresh()
-
+exe("timer 1648")
+                        
 if __name__ == "__main__":
     while True:
         recognize_speech()  
