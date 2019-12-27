@@ -2,13 +2,9 @@ import os
 import webbrowser
 import subprocess
 import json
-import threading
-import datetime
 # http used for error exception
 import http
 import speech_recognition as sr
-from gtts import gTTS
-from io import BytesIO
 from itertools import chain
 from difflib import get_close_matches
 
@@ -162,7 +158,7 @@ def note(command):
 note.help = """Write/append/read a txt file: (title) (mode) [if mode not read (what you want to write down)]"""
 
 def timer(command):
-    if len(command.split())+1 == 2 and command.split()[1] == "forever":
+    if len(command.split())+1 == 2:
         os.system("python3 Timer.py {} {}".format(command.split()[0], True))
     else:
         os.system("python3 Timer.py {}".format(command))
@@ -192,9 +188,8 @@ def exe(command):
         return False
 
 # speech recognition
+recognizer = sr.Recognizer()
 def recognize_speech():
-    recognizer = sr.Recognizer()
-
     with sr.Microphone() as source:
         print("Listening...")
         try:
@@ -218,7 +213,7 @@ def recognize_speech():
 
 
 current_files, current_dirs, current_subs = refresh()
-exe("timer 1648")
+
                         
 if __name__ == "__main__":
     while True:
