@@ -4,6 +4,7 @@ import subprocess
 import json
 # http used for error exception
 import http
+import Timer
 import speech_recognition as sr
 from itertools import chain
 from difflib import get_close_matches
@@ -13,6 +14,9 @@ with open("websites.json") as websites_json:
     WEBSITES = json.load(websites_json)
 
 STANDARD_CUTOFF = 0.4
+
+# current_files, current_dirs and current_paths are defined at the bottom of the file.
+# They are the current files, dirs, and paths in the directory.
 
 def find_path(file):
     for path, dirs, files in os.walk(os.getcwd()):
@@ -80,7 +84,7 @@ def play(command):
 play.help = """Plays a file: "play (file)" """
 
 def run(command):
-    subprocess.call(command, shell=True)
+    subprocess.run(command, shell=True)
 
 run.help = """Runs command on the teminal: "run (command)" """
 
@@ -102,19 +106,7 @@ def lst(directory=None):
         print(os.listdir(os.getcwd()))
 lst.help = """lists the contents of a directory:
 list (directory)"""
-
-def _help_(specific_command=None):
-    if not specific_command:
-        for k,v in exe.commands.items():
-            print(" ")
-            print("FUNCTION {}: {}".format(k.upper(), v.help))
-    else:
-        try:
-            print(exe.commands[specific_command].help)
-        except KeyError:
-            print('"{}" is not a command!'.format(specific_command))
-
-_help_.help = "Prints the help attribute of every command"        
+       
         
 def refresh():
     """ Order is: files, directories,then paths."""
@@ -129,7 +121,7 @@ def refresh():
     print("Done!")
     return current_files, current_dirs, current_paths
 
-refresh.help = "Looks through the files and directories again"
+refresh.help = "Looks through the files and directories and saves any changes."
 
 def note(command):
     # THis is what a command will look like
@@ -158,14 +150,33 @@ def note(command):
 note.help = """Write/append/read a txt file: (title) (mode) [if mode not read (what you want to write down)]"""
 
 def timer(command):
-    if len(command.split())+1 == 2:
-        os.system("python3 Timer.py {} {}".format(command.split()[0], True))
-    else:
-        os.system("python3 Timer.py {}".format(command))
+    print("Me (The timer function has been called!")
+    try:
+        if len(command.split()) == 2 and command.split()[1] == "forever":
+            subprocess.run(["python3", "Timer.py", str(command.split()[0]), "True"])
+    # An index error will ocur if command.split[1] does not exist
+    except IndexError:
+        print("The actual timer is about to start!")
+
+        Timer.timer(str(command.split()[0]))
+        
 
 timer.help = """Create a permint or temporary timer:
 permamint: "timer (time in 24h time) forever"
 temporary: "timer (time in 24h time)" """
+
+def _help_(specific_command=None):
+    if not specific_command:
+        for k,v in exe.commands.items():
+            print(" ")
+            print("FUNCTION {}: {}".format(k.upper(), v.help))
+    else:
+        try:
+            print(exe.commands[specific_command].help)
+        except KeyError:
+            print('"{}" is not a command!'.format(specific_command))
+
+_help_.help = "Prints the help attribute of every command" 
 
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
@@ -213,7 +224,8 @@ def recognize_speech():
 
 
 current_files, current_dirs, current_subs = refresh()
-
+exe("timer 1251")
+print("running timer... function")
                         
 if __name__ == "__main__":
     while True:
