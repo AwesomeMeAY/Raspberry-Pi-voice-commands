@@ -6,6 +6,8 @@ import json
 import http
 import Timer
 import speech_recognition as sr
+import pyttsx3 as pytexttospeach
+import weather
 from itertools import chain
 from difflib import get_close_matches
 
@@ -177,11 +179,14 @@ def _help_(specific_command=None):
             print('"{}" is not a command!'.format(specific_command))
 
 _help_.help = "Prints the help attribute of every command" 
-
+def weather_speaker():
+    TEXT_ENGINE = pytexttospeach.init()
+    TEXT_ENGINE.say(weather.forecast())
+    TEXT_ENGINE.runAndWait()
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst,
-                    "help":_help_, "note":note, "timer":timer}   
+                "help":_help_, "note":note, "timer":timer, "weather":weather_speaker}   
     
     command = command.lower()
     order = command.split()[0]
