@@ -6,7 +6,7 @@ import json
 import http
 import Timer
 import speech_recognition as sr
-import pyttsx3 as pytexttospeach
+import pyttsx3 as pytexttospeech
 import weather
 from itertools import chain
 from difflib import get_close_matches
@@ -16,6 +16,9 @@ with open("websites.json") as websites_json:
     WEBSITES = json.load(websites_json)
 
 STANDARD_CUTOFF = 0.4
+# Set some options for text to speech
+engine = pytexttospeech.init()
+engine.setProperty('rate',125)
 
 # current_files, current_dirs and current_paths are defined at the bottom of the file.
 # They are the current files, dirs, and paths in the directory.
@@ -180,9 +183,9 @@ def _help_(specific_command=None):
 
 _help_.help = "Prints the help attribute of every command" 
 def weather_speaker():
-    TEXT_ENGINE = pytexttospeach.init()
-    TEXT_ENGINE.say(weather.forecast())
-    TEXT_ENGINE.runAndWait()
+    forcast = weather.forecast()
+    engine.say(forcast)
+    engine.runAndWait()
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst,
@@ -233,5 +236,7 @@ exe("timer 1251")
 print("running timer... function")
                         
 if __name__ == "__main__":
+    for voice in engine.getProperty("voices"):
+        print(voice.id)
     while True:
-        recognize_speech()  
+        recognize_speech()   
