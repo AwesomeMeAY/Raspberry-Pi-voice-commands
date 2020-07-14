@@ -5,9 +5,10 @@ import json
 # http used for error exception
 import http
 import Timer
+import weather
+import toggle
 import speech_recognition as sr
 import pyttsx3 as pytexttospeech
-import weather
 from itertools import chain
 from difflib import get_close_matches
 
@@ -73,9 +74,13 @@ search.help = '''searches duckduckgo: "search (what you want to search for)". if
 "search (specific website)(what you want to search for)"'''  
 
 def play_directory(command):    
-    combined_dir =  dir_search(command)
+    # Directory the user wants to play
+    wanted_dir=  dir_search(command)
+    # Get entire directory tree 
     for sub_dir, dirs, files in os.walk(os.getcwd()):
-        if combined_dir in sub_dir:
+        if wanted_dir in sub_dir:
+            engine.say(f"Playing {wanted_dir}")
+            engine.runAndWait()
             os.system("vlc {}".format(sub_dir))                
             return True
 play_directory.help = """Turns a directory into a vlc playlist: "playlist (directory)" """
@@ -83,6 +88,8 @@ play_directory.help = """Turns a directory into a vlc playlist: "playlist (direc
 def play(command):
     #this will play one file
     file = file_search(command[command.index(command.split()[1]):])
+    engine.say(f"Playing {command}")
+    engine.runAndWait()
     subprocess.call(["xdg-open",find_path(file)])
     return True
 
@@ -186,10 +193,12 @@ def weather_speaker():
     forcast = weather.forecast()
     engine.say(forcast)
     engine.runAndWait()
+def toggle_runner(audio_card):
+    toggle.switch_audio_device(audio_card)
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst,
-                "help":_help_, "note":note, "timer":timer, "weather":weather_speaker}   
+                "help":_help_, "note":note, "timer":timer, "weather":weather_speaker, 'toggle':toggle_runner}   
     
     command = command.lower()
     order = command.split()[0]
@@ -199,8 +208,12 @@ def exe(command):
             return exe.commands[order](command[command.index(command.split()[1]):])
 
         except IndexError:
-            return exe.commands[order]()
-
+            try:
+                return exe.commands[order]()
+            except TypeError:
+                print("I misunderstood you and an error ocurred!")
+                print(f"I thought you said {command}!")
+                return 0
         
     else:
         print('Could not recognize command "{}"!'.format(command))
