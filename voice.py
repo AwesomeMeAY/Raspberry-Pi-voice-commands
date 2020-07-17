@@ -31,6 +31,7 @@ def find_path(file):
     
     print("Could not find path!")
     
+    
 
 def file_search(file):
     return get_close_matches(file, current_files, cutoff=STANDARD_CUTOFF)[0]
@@ -62,7 +63,7 @@ def search(command):
     # if command.split()[0] in websites.json then it will search the website
     # instead of googling it.
     if website in WEBSITES:
-        url = "{}{} {}".format(duckurl, WEBSITES[website], command[command.index(command.split()[1]):])
+        url = f"{duckurl}{WEBSITES[website]} {command[command.index(command.split()[1]):]}"
         
     else:
         url = duckurl + command
@@ -193,8 +194,10 @@ def weather_speaker():
     forcast = weather.forecast()
     engine.say(forcast)
     engine.runAndWait()
+
 def toggle_runner(audio_card):
     toggle.switch_audio_device(audio_card)
+
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst,
@@ -210,7 +213,7 @@ def exe(command):
         except IndexError:
             try:
                 return exe.commands[order]()
-            except TypeError:
+            except:
                 print("I misunderstood you and an error ocurred!")
                 print(f"I thought you said {command}!")
                 return 0
@@ -249,7 +252,5 @@ exe("timer 1251")
 print("running timer... function")
                         
 if __name__ == "__main__":
-    for voice in engine.getProperty("voices"):
-        print(voice.id)
     while True:
         recognize_speech()   
