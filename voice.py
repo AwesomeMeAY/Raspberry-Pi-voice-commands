@@ -13,9 +13,13 @@ from itertools import chain
 from difflib import get_close_matches
 
 # Constants
-with open("websites.json") as websites_json:
-    WEBSITES = json.load(websites_json)
-
+try:
+    with open("websites.json") as websites_json:
+        WEBSITES = json.load(websites_json)
+except FileNotFoundError:
+    with open('websites.json','w') as websites_json:
+        websites_json.write('{"google":"!g"}')
+        WEBSITES = {"google":"!g"}
 STANDARD_CUTOFF = 0.4
 # Set some options for text to speech
 engine = pytexttospeech.init()
@@ -224,22 +228,22 @@ def exe(command):
 
 # speech recognition
 recognizer = sr.Recognizer()
-def recognize_speech():
+def recognize_speech(wait_length=5):
     with sr.Microphone() as source:
         print("Listening...")
         try:
-            audio = recognizer.listen(source, timeout=5)
+            audio = recognizer.listen(source, timeout=wait_length)
         except sr.WaitTimeoutError:
             print("You ran out of time!")
             return False
     print("Recognizing...")
     try:
-        command_worked = exe(recognizer.recognize_google(audio))
-        return True
+        command = recognizer.recognize_google(audio)
+        return command
     except(sr.RequestError, http.client.RemoteDisconnected):
         print("Something went wrong with the conection. Trying sphinx...")
-        command_worked = exe(recognizer.recognize_sphinx(audio))
-    
+        command = recognizer.recognize_sphinx(audio)
+        return command 
     except sr.UnknownValueError:
         print("Could not hear what you were saying!")
         return False
@@ -253,4 +257,4 @@ print("running timer... function")
                         
 if __name__ == "__main__":
     while True:
-        recognize_speech()   
+        exe(recognize_speech())
