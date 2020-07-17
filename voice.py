@@ -7,6 +7,7 @@ import http
 import Timer
 import weather
 import toggle
+import game
 import speech_recognition as sr
 import pyttsx3 as pytexttospeech
 from itertools import chain
@@ -205,7 +206,7 @@ def toggle_runner(audio_card):
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst,
-                "help":_help_, "note":note, "timer":timer, "weather":weather_speaker, 'toggle':toggle_runner}   
+                "help":_help_, "note":note, "timer":timer, "weather":weather_speaker, 'toggle':toggle.switch_audio_device, "game",game.rps}   
     
     command = command.lower()
     order = command.split()[0]
@@ -252,9 +253,6 @@ def recognize_speech(wait_length=5):
 
 
 current_files, current_dirs, current_subs = refresh()
-exe("timer 1251")
-print("running timer... function")
-                        
 if __name__ == "__main__":
     while True:
         exe(recognize_speech())
