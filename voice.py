@@ -252,7 +252,7 @@ def recognize_speech(wait_length=5):
 
 
 
-current_files, current_dirs, current_subs = refresh()
 if __name__ == "__main__":
+    current_files, current_dirs, current_subs = refresh()
     while True:
         exe(recognize_speech())
