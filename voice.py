@@ -249,9 +249,6 @@ def recognize_speech(wait_length=5):
     except sr.UnknownValueError:
         print("Could not hear what you were saying!")
         return ""
-    
-
-
 
 if __name__ == "__main__":
     current_files, current_dirs, current_subs = refresh()
