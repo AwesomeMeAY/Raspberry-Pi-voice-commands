@@ -7,7 +7,6 @@ import http
 import Timer
 import weather
 import toggle
-import game
 import speech_recognition as sr
 import pyttsx3 as pytexttospeech
 from itertools import chain
@@ -202,11 +201,13 @@ def weather_speaker():
 
 def toggle_runner(audio_card):
     toggle.switch_audio_device(audio_card)
-
+def rps():
+    import game
+    game.rps()
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst,
-                "help":_help_, "note":note, "timer":timer, "weather":weather_speaker, 'toggle':toggle.switch_audio_device, "game",game.rps}   
+                "help":_help_, "note":note, "timer":timer, "weather":weather_speaker, 'toggle':toggle.switch_audio_device, "game":rps}   
     
     command = command.lower()
     order = command.split()[0]
@@ -236,7 +237,7 @@ def recognize_speech(wait_length=5):
             audio = recognizer.listen(source, timeout=wait_length)
         except sr.WaitTimeoutError:
             print("You ran out of time!")
-            return False
+            return ""
     print("Recognizing...")
     try:
         command = recognizer.recognize_google(audio)
@@ -247,7 +248,7 @@ def recognize_speech(wait_length=5):
         return command 
     except sr.UnknownValueError:
         print("Could not hear what you were saying!")
-        return False
+        return ""
     
 
 
