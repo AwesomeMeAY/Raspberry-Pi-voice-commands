@@ -56,6 +56,8 @@ def dir_search(directory):
     # And if the list is emty there is no index 0 
     except IndexError:
         print('Could not find directory "{}"!'.format(directory))
+        engine.say(f"Could not find the directory {directory}")
+        engine.runAndWait()
         return ""
     
 # commands
@@ -68,7 +70,6 @@ def search(command):
     # instead of googling it.
     if website in WEBSITES:
         url = f"{duckurl}{WEBSITES[website]} {command[command.index(command.split()[1]):]}"
-        
     else:
         url = duckurl + command
 
