@@ -124,7 +124,6 @@ def lst(directory=None):
 lst.help = """lists the contents of a directory:
 list (directory)"""
        
-        
 def refresh():
     """ Order is: files, directories,then paths."""
     print("Refreshing files...")
@@ -139,48 +138,6 @@ def refresh():
     return current_files, current_dirs, current_paths
 
 refresh.help = "Looks through the files and directories and saves any changes."
-
-def note(command):
-    # THis is what a command will look like
-    # (Title) (Mode) (Junk to write down)
-    modes = {"overwrite":"w", "append":"a", "read":"r"}
-    title = ""
-    # iterating through title until the it reaches mode
-    for i in command.split():
-        if i not in modes:
-            title += i + " "
-        else:
-            break
-    title = title.strip()
-    # Seperating the title from everything else
-    command = command[command.index(title[-1])+2:]
-    mode = command.split()[0]
-    try:
-        with open(title, modes[mode]) as file:
-            if mode == "read":
-                print(file.read())
-            else:
-                file.write(command[command.index(command.split()[1]):])
-    except KeyError:
-        print("(NOTE) Could not find a mode in your command!")
-
-note.help = """Write/append/read a txt file: (title) (mode) [if mode not read (what you want to write down)]"""
-
-def timer(command):
-    print("Me (The timer function has been called!")
-    try:
-        if len(command.split()) == 2 and command.split()[1] == "forever":
-            subprocess.run(["python3", "Timer.py", str(command.split()[0]), "True"])
-    # An index error will ocur if command.split[1] does not exist
-    except IndexError:
-        print("The actual timer is about to start!")
-
-        Timer.timer(str(command.split()[0]))
-        
-
-timer.help = """Create a permint or temporary timer:
-permamint: "timer (time in 24h time) forever"
-temporary: "timer (time in 24h time)" """
 
 def _help_(specific_command=None):
     if not specific_command:
@@ -217,12 +174,7 @@ def exe(command):
             return exe.commands[order](command[command.index(command.split()[1]):])
 
         except IndexError:
-            try:
-                return exe.commands[order]()
-            except:
-                print("I misunderstood you and an error ocurred!")
-                print(f"I thought you said {command}!")
-                return 0
+            return exe.commands[order]()
         
     else:
         print('Could not recognize command "{}"!'.format(command))
@@ -244,11 +196,19 @@ def recognize_speech(wait_length=5):
         return command
     except(sr.RequestError, http.client.RemoteDisconnected):
         print("Something went wrong with the conection. Trying sphinx...")
+        engine.say("Something went wrong with the conection. Trying sphinx...")
+        eninge.runAndWait()
         command = recognizer.recognize_sphinx(audio)
         return command 
     except sr.UnknownValueError:
         print("Could not hear what you were saying!")
+        eninge.say("Could not hear what you were saying!")
+        eninge.runAndWait()
         return ""
+
+# To do:
+#   Redo timer
+#   redo note
 
 if __name__ == "__main__":
     current_files, current_dirs, current_subs = refresh()
