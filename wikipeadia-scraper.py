@@ -9,5 +9,7 @@ def wikipeadia_search(article):
     print(request.status_code)
     parser = Soup(request.text, 'html.parser')
     print(parser.find_all('p')[1].get_text())
-wikipeadia_search("")
+
+wikipeadia_search(argv[1])
+print("What you said", argv[1])
 print("succsess")
