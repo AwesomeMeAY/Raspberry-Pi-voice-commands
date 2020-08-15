@@ -28,7 +28,11 @@ engine.setProperty('rate',125)
 
 # current_files, current_dirs and current_paths are defined at the bottom of the file.
 # They are the current files, dirs, and paths in the directory.
-
+def make_string(lst):
+    return_string = ''
+    for i in lst:
+        return_string += i
+    return return_string
 def find_path(file):
     for path, dirs, files in os.walk(os.getcwd()):
         if any(i == file for i in chain(dirs, files)):
@@ -163,25 +167,30 @@ def toggle_runner(audio_card):
 def rps():
     import game
     game.rps()
+def search_wikipedia(article):
+    x = wikipedia_scraper.wikipedia_search(article)
+    print(x)
+    engine.say(x)
+    engine.runAndWait()
+    return True
+
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst,
-                "help":_help_, "weather":weather_speaker, 'toggle':toggle.switch_audio_device, "game":rps}   
+                "help":_help_, "weather":weather_speaker, 'toggle':toggle.switch_audio_device, "game":rps, "what is":search_wikipedia}   
     
     command = command.lower()
-    order = command.split()[0]
-    if order in exe.commands:
-        # The dictionary returns the function name which is then called in this line of code
-        try:
-            return exe.commands[order](command[command.index(command.split()[1]):])
-
-        except IndexError:
-            return exe.commands[order]()
-        
-    else:
-        print('Could not recognize command "{}"!'.format(command))
-        return False
-
+    command_list = command.split()
+    function = ''
+    for word in command_list:
+        function += f'{word} '
+        current_index = command_list.index(word) + 1
+        if function.strip() in exe.commands:
+            try:
+                return exe.commands[function.strip()](make_string(command_list[current_index:]))
+            except TypeError:
+                return exe.commands[function]()
+    print(f"Could not recognize command {command}")
 # speech recognition
 recognizer = sr.Recognizer()
 def recognize_speech(wait_length=5):
@@ -190,7 +199,7 @@ def recognize_speech(wait_length=5):
         try:
             audio = recognizer.listen(source, timeout=wait_length)
         except sr.WaitTimeoutError:
-            print("You ran out of time!")
+            input("Press enter to continue")
             return recognize_speech()
     print("Recognizing...")
     try:
@@ -207,6 +216,7 @@ def recognize_speech(wait_length=5):
         engine.say("Could not hear what you were saying!")
         engine.runAndWait()
         return recognize_speech()
+    return "Failed"
 
 # To do:
 #   Redo timer

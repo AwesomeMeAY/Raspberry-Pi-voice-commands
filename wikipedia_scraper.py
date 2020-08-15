@@ -11,7 +11,7 @@ def find_first_paragraph(lst):
             continue
         return paragraph.get_text()
 
-def wikipeadia_search(article):
+def wikipedia_search(article):
     article = article.replace(" ", "_")
     request = Requests.get(f'https://en.wikipedia.org/wiki/{article}')
     print(request.status_code)
