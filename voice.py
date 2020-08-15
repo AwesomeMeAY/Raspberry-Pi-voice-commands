@@ -6,6 +6,7 @@ import json
 import http
 import Timer
 import weather
+import wikipedia_scraper
 import toggle
 import speech_recognition as sr
 import pyttsx3 as pytexttospeech
@@ -165,7 +166,7 @@ def rps():
 def exe(command):
     exe.commands = {"search":search, "playlist":play_directory, "play":play,
                 "add":add, "run":run, "refresh":refresh, "list":lst,
-                "help":_help_, "note":note, "timer":timer, "weather":weather_speaker, 'toggle':toggle.switch_audio_device, "game":rps}   
+                "help":_help_, "weather":weather_speaker, 'toggle':toggle.switch_audio_device, "game":rps}   
     
     command = command.lower()
     order = command.split()[0]
@@ -190,7 +191,7 @@ def recognize_speech(wait_length=5):
             audio = recognizer.listen(source, timeout=wait_length)
         except sr.WaitTimeoutError:
             print("You ran out of time!")
-            return ""
+            return recognize_speech()
     print("Recognizing...")
     try:
         command = recognizer.recognize_google(audio)
@@ -203,9 +204,9 @@ def recognize_speech(wait_length=5):
         return command 
     except sr.UnknownValueError:
         print("Could not hear what you were saying!")
-        eninge.say("Could not hear what you were saying!")
-        eninge.runAndWait()
-        return ""
+        engine.say("Could not hear what you were saying!")
+        engine.runAndWait()
+        return recognize_speech()
 
 # To do:
 #   Redo timer
